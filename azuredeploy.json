@@ -32,7 +32,7 @@
     },
     "sourceCodeRepositoryURL": {
       "type": "string",
-      "defaultValue": "ENTER PATH to YOUR FORK of https://github.com/Azure-Samples/media-services-dotnet-functions-integration",
+      "defaultValue": "https://github.com/cosh/media-services-dotnet-functions-integration",
       "metadata": {
         "description": "Source code repository URL. Is is highly recommended that you first fork the samples repository and point this to your fork. If you are using your own fork, set the sourceCodeManualIntegration property to false below."
       }
@@ -46,7 +46,7 @@
     },
     "sourceCodeManualIntegration": {
       "type": "bool",
-      "defaultValue": true,
+      "defaultValue": false,
       "metadata": {
         "description": "Use 'true' if you are deploying from the base repo, 'false' if you are deploying from your own fork. If you're using 'false', make sure you have admin permissions to the repo. If you get an error, you should add GitHub integration to another web app manually, so that you get a GitHub access token associated with your Azure Subscription."
       }
