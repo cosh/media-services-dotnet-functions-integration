@@ -14,9 +14,13 @@ to ingesting content directly from blob storage, encoding, and writing content b
 how to monitor job notifications via WebHooks and Azure Queues. 
 
 ## Deploying to Azure
-It is recommended that you first fork the project and update the "sourceCodeRepositoryURL" in the [azuredeploy.json](azuredeploy.json) template parameters
+It is **REQUIRED** that you first fork the project and update the "sourceCodeRepositoryURL" in the [azuredeploy.json](azuredeploy.json) template parameters
 when deploying to your own Azure account.  That way you can more easily update, experiment and edit the code and see changes
-reflected quickly in your own Functions deployment.  
+reflected quickly in your own Functions deployment. 
+
+We are doing this to save you from our future updates that could break your functions due to continuous integration. 
+
+**WARNING**: If you attempt to deploy from the public samples Github repo, and not your own fork, you will see an Error during deployment with a "BadRequest" and an OAuth exception. 
 
 ## Questions & Help
 
@@ -186,8 +190,10 @@ The format of the json file is:
       }
     ]
 
-## create-empty-asset, sync-asset, live-analytics, submit-job, check-job-status, publish-asset, return-subtitles functions in "200-logic-app" folder
-These functions are designed to be called by a Logic App. More details and Logic App samples to come. 
+## 200-logic-app
+Functions : create-empty-asset, sync-asset, live-analytics, submit-job, check-job-status, publish-asset, return-subtitles.
+These functions are designed to be called by a Logic App.
+A first template to deploy the sample logic app is available in [200-logic-app](/200-logic-app) 
 
 One specific patterns to pay attention to here include the check-job-status function which is used to poll for 
 job status from a Logic App workflow. 
@@ -204,7 +210,7 @@ This sample project is licensed under [the MIT License](LICENSE.txt)
 - [ ] The Azure Queue notification function is not yet complete
 - [ ] Copy Blobs currently is using Streams, and copies in an inefficient way.
 - [ ] Document the Logic Apps functions
-- [ ] We are still working on improving the ARM template and we also plan to modify the 
+- [X] DONE: We are still working on improving the ARM template and we also plan to modify the 
 directoy structure of this project to make it easier to understand and deploy smaller "scenarios"
 
 ---
