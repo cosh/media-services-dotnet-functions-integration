@@ -36,6 +36,7 @@ Output:
 #r "System.Web"
 #load "../Shared/mediaServicesHelpers.csx"
 #load "../Shared/copyBlobHelpers.csx"
+#load "../Shared/jobHelpers.csx"
 
 using System;
 using System.Net;
@@ -67,11 +68,9 @@ private static CloudMediaContext _context = null;
 private static MediaServicesCredentials _cachedCredentials = null;
 private static CloudStorageAccount _destinationStorageAccount = null;
 
-private static int _taskindex = 0;
-
 public static async Task<object> Run(HttpRequestMessage req, TraceWriter log)
 {
-    _taskindex = 0;
+    int taskindex = 0;
 
     log.Info($"Webhook was triggered!");
 
@@ -161,7 +160,7 @@ public static async Task<object> Run(HttpRequestMessage req, TraceWriter log)
                 }
                 else
                 {
-                    presetPath = Path.Combine(homePath, @"site\repository\200-logic-app\presets\" + preset);
+                    presetPath = Path.Combine(homePath, @"site\repository\media-functions-for-logic-app\presets\" + preset);
                 }
                 log.Info($"Preset path : {presetPath}");
                 preset = File.ReadAllText(presetPath);
@@ -176,7 +175,7 @@ public static async Task<object> Run(HttpRequestMessage req, TraceWriter log)
 
             // Specify the input asset to be encoded.
             taskEncoding.InputAssets.Add(asset);
-            OutputMES = _taskindex++;
+            OutputMES = taskindex++;
 
             // Add an output asset to contain the results of the job. 
             // This output is specified as AssetCreationOptions.None, which 
@@ -219,7 +218,7 @@ public static async Task<object> Run(HttpRequestMessage req, TraceWriter log)
             // Specify the input asset to be encoded.
             taskEncoding.InputAssets.Add(workflowAsset); // first add the Workflow
             taskEncoding.InputAssets.Add(asset); // Then add the video asset
-            OutputMEPW = _taskindex++;
+            OutputMEPW = taskindex++;
 
             // Add an output asset to contain the results of the job. 
             // This output is specified as AssetCreationOptions.None, which 
@@ -229,13 +228,13 @@ public static async Task<object> Run(HttpRequestMessage req, TraceWriter log)
 
 
         // Media Analytics
-        OutputIndex1 = AddTask(job, asset, (string)data.indexV1Language, "Azure Media Indexer", "IndexerV1.xml", "English");
-        OutputIndex2 = AddTask(job, asset, (string)data.indexV2Language, "Azure Media Indexer 2 Preview", "IndexerV2.json", "EnUs");
-        OutputOCR = AddTask(job, asset, (string)data.ocrLanguage, "Azure Media OCR", "OCR.json", "AutoDetect");
-        OutputFace = AddTask(job, asset, (string)data.faceDetectionMode, "Azure Media Face Detector", "FaceDetection.json", "PerFaceEmotion");
-        OutputMotion = AddTask(job, asset, (string)data.motionDetectionLevel, "Azure Media Motion Detector", "MotionDetection.json", "medium");
-        OutputSummarization = AddTask(job, asset, (string)data.summarizationDuration, "Azure Media Video Thumbnails", "Summarization.json", "0.0");
-        OutputHyperlapse = AddTask(job, asset, (string)data.hyperlapseSpeed, "Azure Media Hyperlapse", "Hyperlapse.json", "8");
+        OutputIndex1 = AddTask(job, asset, (string)data.indexV1Language, "Azure Media Indexer", "IndexerV1.xml", "English", ref taskindex);
+        OutputIndex2 = AddTask(job, asset, (string)data.indexV2Language, "Azure Media Indexer 2 Preview", "IndexerV2.json", "EnUs", ref taskindex);
+        OutputOCR = AddTask(job, asset, (string)data.ocrLanguage, "Azure Media OCR", "OCR.json", "AutoDetect", ref taskindex);
+        OutputFace = AddTask(job, asset, (string)data.faceDetectionMode, "Azure Media Face Detector", "FaceDetection.json", "PerFaceEmotion", ref taskindex);
+        OutputMotion = AddTask(job, asset, (string)data.motionDetectionLevel, "Azure Media Motion Detector", "MotionDetection.json", "medium", ref taskindex);
+        OutputSummarization = AddTask(job, asset, (string)data.summarizationDuration, "Azure Media Video Thumbnails", "Summarization.json", "0.0", ref taskindex);
+        OutputHyperlapse = AddTask(job, asset, (string)data.hyperlapseSpeed, "Azure Media Hyperlapse", "Hyperlapse.json", "8", ref taskindex);
 
         job.Submit();
         log.Info("Job Submitted");
@@ -273,42 +272,3 @@ public static async Task<object> Run(HttpRequestMessage req, TraceWriter log)
         outputAssetHyperlapseId = ReturnId(job, OutputHyperlapse),
     });
 }
-
-public static string ReturnId(IJob job, int index)
-{
-    return index > -1 ? job.OutputMediaAssets[index].Id : "";
-}
-
-public static int AddTask(IJob job, IAsset sourceAsset, string value, string processor, string presetfilename, string stringtoreplace)
-{
-    if (value != null)
-    {
-        // Get a media processor reference, and pass to it the name of the 
-        // processor to use for the specific task.
-        IMediaProcessor mediaProcessor = GetLatestMediaProcessorByName(processor);
-
-        string Configuration = File.ReadAllText(@"D:\home\site\wwwroot\Presets\" + presetfilename).Replace(stringtoreplace, value);
-
-        // Create a task with the encoding details, using a string preset.
-        var task = job.Tasks.AddNew(processor + " task",
-           mediaProcessor,
-           Configuration,
-           TaskOptions.None);
-
-        // Specify the input asset to be indexed.
-        task.InputAssets.Add(sourceAsset);
-
-        // Add an output asset to contain the results of the job.
-        task.OutputAssets.AddNew(processor + " Output Asset", AssetCreationOptions.None);
-
-        return _taskindex++;
-    }
-    else
-    {
-        return -1;
-    }
-}
-
-
-
-
